@@ -103,6 +103,21 @@
             <small v-if="errors.has('settings.swingModes')" class="form-text text-muted">{{ errors.first('settings.swingModes') }}</small>
             <small v-else class="form-text text-muted">Ex: static, swing</small>
           </div>
+
+          <div class="form-group mb-1" :class="{ 'is-invalid': errors.has('settings.fanModes') }">
+            <label class="mb-0" for="sensorModeInput">Sensor Modes</label>
+            <div class="form-check">
+              <input id="sensorModesEnabledInput" v-model="settings.sensorModesEnabled" :disabled="hassInfoStatus" data-vv-as="swing modes enabled" name="settings.sensorModesEnabled" type="checkbox" class="form-check-input">
+              <label class="form-check-label" for="sensorModesEnabledInput">
+                <span style="height: 0; display: block; width: 0;overflow: hidden;">Swing Modes </span>Enabled
+              </label>
+            </div>
+
+            <input id="sensorModeInput" v-model="settings.sensorModes" v-validate="settings.sensorModesEnabled ? 'required' : ''" :disabled="!settings.sensorModesEnabled || hassInfoStatus" data-vv-as="swing modes" name="settings.sensorModes" type="text" class="form-control form-control-sm">
+            <small v-if="errors.has('settings.sensorModes')" class="form-text text-muted">{{ errors.first('settings.sensorModes') }}</small>
+            <small v-else class="form-text text-muted">Ex: On, Off</small>
+          </div>
+
           <div class="form-group mb-1">
             <button type="button" :disabled="hassInfoStatus" class="btn btn-primary btn-sm mt-2" @click="setupComponent()"><i class="fas fa-cogs mr-1" /> Create table code</button>
           </div>
@@ -141,6 +156,7 @@
               <th class="text-center" style="width: 20px;">Mode</th>
               <th class="text-center" style="width: 20px;">Fan</th>
               <th v-if="settings.swingModesEnabled" class="text-center" style="width: 20px;">Swing</th>
+              <th v-if="settings.swingModesEnabled" class="text-center" style="width: 20px;">Sensor</th>
               <th class="text-center" style="width: 20px;">Temp</th>
               <th>IR code</th>
             </tr>
@@ -155,11 +171,40 @@
               <td class="text-center">{{ item.operationMode }}</td>
               <td class="text-center">{{ item.fanMode }}</td>
               <td v-if="settings.swingModesEnabled" class="text-center">{{ item.swingMode }}</td>
+              <td v-if="settings.swingModesEnabled" class="text-center">{{ item.sensorMode }}</td>
               <td class="text-center">{{ item.temp }}</td>
               <td>{{ item.irCode }}</td>
             </tr>
           </tbody>
         </table>
+
+        <table class="table table-bordered mb-0">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 20px;">#</th>
+              <th class="text-center" style="width: 20px;">Mode</th>
+              <th class="text-center" style="width: 20px;">Fan</th>
+              <th v-if="settings.sensorModesEnabled" class="text-center" style="width: 20px;">Swing</th>
+              <th class="text-center" style="width: 20px;">Temp</th>
+              <th>IR code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in irData" :key="index" :ref="'irKey_' + item.key">
+              <td class="text-center">
+                <button :class="$helper.getTextClassByIcon(item.iconClass)" style="background: none; border: none; padding: 0;" :disabled="currentLearningInfo && currentLearningInfo.command && currentLearningInfo.command !== item" @click="sendLearnCommand(item)">
+                  <i :class="item.iconClass" />
+                </button>
+              </td>
+              <td class="text-center">{{ item.operationMode }}</td>
+              <td class="text-center">{{ item.fanMode }}</td>
+              <td v-if="settings.sensorModesEnabled" class="text-center">{{ item.sensorMode }}</td>
+              <td class="text-center">{{ item.temp }}</td>
+              <td>{{ item.irCode }}</td>
+            </tr>
+          </tbody>
+        </table>
+
       </template>
       <div v-else class="alert alert-danger border-radius-0 p-2">Click to button Create table code for render</div>
     </div>

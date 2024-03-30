@@ -29,6 +29,8 @@ export default {
         fanModes: "auto, level1, level2, level3, level4",
         swingModesEnabled: false,
         swingModes: "static, swing",
+        sensorModesEnabled: false,
+        sensorModes: "On, Off",
         storageFileDeviceKey: undefined
       },
       currentLearningInfo: undefined,
@@ -111,6 +113,8 @@ export default {
         operationModes: this.settings.operationModes.split(",").map(m2 => m2.trim()),
         fanModes: this.settings.fanModes.split(",").map(m2 => m2.trim()),
         ...(this.settings.swingModesEnabled ? { swingModes: this.settings.swingModes.split(",").map(mode => mode.trim()) } : {}),
+        ...(this.settings.sensorModesEnabled ? { sensorModes: this.settings.sensorModes.split(",").map(mode => mode.trim()) } : {}),
+
         commands: {}
       };
 
@@ -135,6 +139,11 @@ export default {
           path = path[m.swingMode];
         }
 
+        if (this.settings.sensorModesEnabled) {
+          if (!path[m.sensorMode]) path[m.sensorMode] = {};
+          path = path[m.sensorMode];
+        }
+
         path[m.temp] = m.irCode;
       });
 
@@ -150,24 +159,30 @@ export default {
         const swingModes = this.settings.swingModesEnabled
           ? this.settings.swingModes.split(",").map(swingMode => swingMode.trim())
           : [null];
+        const sensorModes = this.settings.sensorModesEnabled
+          ? this.settings.sensorModes.split(",").map(sensorMode => sensorMode.trim())
+          : [null];
         const temperatures = this.sendCmdTempList;
 
         for (const operationMode of operationModes) {
           for (const fanMode of fanModes) {
             for (const swingMode of swingModes) {
-              for (const temperature of temperatures) {
-                const key = this.settings.swingModesEnabled
-                  ? `${operationMode}_${fanMode}_${swingMode}_${temperature}`
-                  : `${operationMode}_${fanMode}_${temperature}`;
-                this.$set(this.irData, key, {
-                  key,
-                  operationMode,
-                  fanMode,
-                  swingMode,
-                  temp: temperature,
-                  irCode: "",
-                  iconClass: config.iconIr.learn
-                });
+              for (const sensorMode of sensorModes) {
+                for (const temperature of temperatures) {
+                  const key = this.settings.swingModesEnabled
+                    ? `${operationMode}_${fanMode}_${swingMode}_${temperature}`
+                    : `${operationMode}_${fanMode}_${temperature}`;
+                  this.$set(this.irData, key, {
+                    key,
+                    operationMode,
+                    fanMode,
+                    swingMode,
+                    sensorMode,
+                    temp: temperature,
+                    irCode: "",
+                    iconClass: config.iconIr.learn
+                  });
+                }
               }
             }
           }
